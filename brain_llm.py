@@ -72,7 +72,7 @@ class LocalBrain:
         ]
         schemas = self._tools.tool_definitions()
 
-        for _ in range(3):
+        for _ in range(4):
             message = self._chat(messages, self._chat_model, schemas)
             messages.append(message)
             calls = message.get("tool_calls", [])

@@ -35,6 +35,12 @@ Pencere içinde metinle komut gönderebilir veya mikrofon izni verip
 "Hey ACIÖZ" diyerek uyandırabilirsin. Görüntü analizi yalnızca kamera sorusu
 geldiğinde çalışır.
 
+## Testler
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
 ## Güvenlik ve sınırlar
 
 - Ollama bağlantısı `127.0.0.1` üzerindedir; istemci uzak servis kullanmaz.
