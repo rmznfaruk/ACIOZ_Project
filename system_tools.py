@@ -10,6 +10,7 @@ class SystemTools:
     """Provide a small set of constrained desktop actions."""
 
     _APPLICATIONS = {
+        "browser": (),
         "notepad": ("notepad.exe",),
         "calculator": ("calc.exe",),
         "file explorer": ("explorer.exe",),
@@ -38,7 +39,10 @@ class SystemTools:
         if command is None:
             allowed = ", ".join(sorted(self._APPLICATIONS))
             raise ValueError(f"Application is not allowlisted. Choose: {allowed}")
-        subprocess.Popen(command, shell=False)
+        if application.strip().lower() == "browser":
+            webbrowser.open("about:blank", new=2)
+        else:
+            subprocess.Popen(command, shell=False)
         return f"Started {application}"
 
     def open_website(self, url: str) -> str:
@@ -88,7 +92,12 @@ class SystemTools:
                         "properties": {
                             "application": {
                                 "type": "string",
-                                "enum": ["notepad", "calculator", "file explorer"],
+                                "enum": [
+                                    "browser",
+                                    "notepad",
+                                    "calculator",
+                                    "file explorer",
+                                ],
                             }
                         },
                         "required": ["application"],

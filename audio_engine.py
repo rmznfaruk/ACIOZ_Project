@@ -34,6 +34,7 @@ class AudioEngine:
         self._on_command = on_command
         self._model_dir = model_dir
         self._audio_queue: queue.Queue[bytes] = queue.Queue(maxsize=32)
+        self._speech_queue: queue.Queue[str] = queue.Queue()
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -52,6 +53,11 @@ class AudioEngine:
         self._stop_event.set()
         if self._thread:
             self._thread.join(timeout=3)
+
+    def speak(self, text: str) -> None:
+        """Queue speech synthesis on the audio thread."""
+        if text.strip():
+            self._speech_queue.put(text.strip())
 
     def _audio_callback(self, data: bytes, _frames: int, _time: object, status: object) -> None:
         """Queue a microphone block without blocking the audio callback."""
@@ -90,6 +96,14 @@ class AudioEngine:
             ):
                 while not self._stop_event.is_set():
                     try:
+                        speech = self._speech_queue.get_nowait()
+                    except queue.Empty:
+                        speech = ""
+                    if speech:
+                        speaker.say(speech)
+                        speaker.runAndWait()
+
+                    try:
                         audio = self._audio_queue.get(timeout=0.5)
                     except queue.Empty:
                         continue
@@ -113,8 +127,7 @@ class AudioEngine:
                         awaiting_command = True
                         command_deadline = time.monotonic() + 10
                         self._on_status("Buyurun efendim")
-                        speaker.say("Buyurun efendim")
-                        speaker.runAndWait()
+                        self._speech_queue.put("Buyurun efendim")
                         self._on_status("Komutunuz bekleniyor")
         except (OSError, RuntimeError, ValueError) as error:
             LOGGER.exception("Audio listener failed.")

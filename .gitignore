@@ -5,3 +5,4 @@ __pycache__/
 models/*
 !models/.gitkeep
 .pytest_cache/
+ollama-local*.log

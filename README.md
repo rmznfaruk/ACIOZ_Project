@@ -14,11 +14,11 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 python -m pip install -r requirements.txt
 ```
 
-Ollama modellerini ayrıca indir:
+Ollama kurulduktan sonra modelleri bir kez indir:
 
 ```powershell
-ollama pull qwen3:4b
-ollama pull qwen2.5vl:3b
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\setup-models.ps1
 ```
 
 Türkçe Vosk modeli `models\vosk-model-small-tr-0.3` altında bulunmalıdır.
@@ -28,7 +28,8 @@ yerleştir. `.gitignore` nedeniyle model ağırlıkları Git'e eklenmez.
 ## Çalıştırma
 
 ```powershell
-python main.py
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\run.ps1
 ```
 
 Pencere içinde metinle komut gönderebilir veya mikrofon izni verip
@@ -44,8 +45,8 @@ python -m unittest discover -s tests -v
 ## Güvenlik ve sınırlar
 
 - Ollama bağlantısı `127.0.0.1` üzerindedir; istemci uzak servis kullanmaz.
-- Araçlar dizin listeleme, var olan yolu açma, HTTP(S) adresi açma ve üç
-  izinli Windows uygulamasını başlatmayla sınırlıdır.
+- Araçlar dizin listeleme, var olan yolu açma, HTTP(S) adresi açma ve izinli
+  uygulamaları (tarayıcı, not defteri, hesap makinesi, dosya gezgini) başlatmayla sınırlıdır.
 - Serbest terminal komutu ve dosya silme araçları bilerek sunulmaz.
 - Kamera otomatik kaydetmez; yalnızca açıkça görüntü sorulduğunda tek kare alır.
 - `ACIOZ_CHAT_MODEL`, `ACIOZ_VISION_MODEL` ve `ACIOZ_VOSK_MODEL` ortam
