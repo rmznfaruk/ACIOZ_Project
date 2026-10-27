@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import ctypes
 import json
 import logging
+import os
 import queue
 import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
+from ctypes import wintypes
 
 import pyttsx3
 import sounddevice as sd
@@ -59,12 +62,41 @@ class AudioEngine:
         if text.strip():
             self._speech_queue.put(text.strip())
 
+    @staticmethod
+    def _model_path_for_vosk(model_dir: Path) -> str:
+        """Convert Windows Unicode paths to short paths for Vosk's native library."""
+        model_path = str(model_dir.resolve())
+        if os.name != "nt" or model_path.isascii():
+            return model_path
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        get_short_path_name = kernel32.GetShortPathNameW
+        get_short_path_name.argtypes = (
+            wintypes.LPCWSTR,
+            wintypes.LPWSTR,
+            wintypes.DWORD,
+        )
+        get_short_path_name.restype = wintypes.DWORD
+
+        buffer = ctypes.create_unicode_buffer(32_768)
+        result = get_short_path_name(model_path, buffer, len(buffer))
+        if result == 0:
+            raise ctypes.WinError(ctypes.get_last_error())
+
+        short_path = buffer.value
+        if not short_path.isascii():
+            raise RuntimeError(
+                "Vosk cannot load models from Unicode paths on Windows. "
+                "Move the project to an ASCII-only path."
+            )
+        return short_path
+
     def _audio_callback(self, data: bytes, _frames: int, _time: object, status: object) -> None:
         """Queue a microphone block without blocking the audio callback."""
         if status:
             LOGGER.warning("Microphone stream status: %s", status)
         try:
-            self._audio_queue.put_nowait(data)
+            self._audio_queue.put_nowait(bytes(data))
         except queue.Full:
             LOGGER.warning("Audio buffer full; dropping oldest microphone block.")
             try:
@@ -79,7 +111,7 @@ class AudioEngine:
             self._on_status(f"Vosk modeli bulunamadı: {self._model_dir}")
             return
         try:
-            model = Model(str(self._model_dir))
+            model = Model(self._model_path_for_vosk(self._model_dir))
             recognizer = KaldiRecognizer(model, SAMPLE_RATE)
             recognizer.SetWords(False)
             speaker = pyttsx3.init()

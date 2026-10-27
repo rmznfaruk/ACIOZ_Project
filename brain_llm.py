@@ -12,6 +12,7 @@ from system_tools import SystemTools
 
 SYSTEM_PROMPT = (
     "Sen ACIÖZ'sün; Türkçe, kısa, teknik ve doğrudan yanıt ver. "
+    "Gizli muhakemeni yanıta ekleme. "
     "Yalnızca kullanıcı isteğiyle ilgili, sunulan yerel araçları kullan. "
     "Dosya silme veya değiştirme yeteneğin yok; böyle bir istekte bunu açıkça belirt."
 )
@@ -54,7 +55,7 @@ class LocalBrain:
             "model": model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": 0.2, "num_predict": 384},
+            "options": {"temperature": 0.2, "num_predict": 1024},
         }
         if tools:
             payload["tools"] = tools
